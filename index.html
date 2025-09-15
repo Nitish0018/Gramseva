@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gramseva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#228B22', // Forest Green
+              secondary: '#F4A460', // Sandy Brown
+              accent: '#4682B4', // Steel Blue
+              background: '#F5F5DC', // Beige
+              surface: '#FFFFFF',
+              textPrimary: '#333333',
+              textSecondary: '#555555',
+            },
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="/src/styles.css">
+  </head>
+  <body class="bg-background">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

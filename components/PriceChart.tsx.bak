@@ -1,0 +1,168 @@
+
+import React from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, TooltipProps, ReferenceLine } from 'recharts';
+
+type Granularity = 'date' | 'month' | 'year';
+
+interface PriceChartProps {
+  // Flexible data shape: any objects that contain the xKey and a numeric price
+  data: Array<Record<string, any>>;
+  xKey: Granularity; // which key to use on x-axis: 'date' | 'month' | 'year'
+  yKey?: string; // defaults to 'price'
+  title?: string;
+}
+
+const currencyFmt = (n: number) => `₹${n.toLocaleString('en-IN')}`;
+
+const dateTickFmt = (value: string) => {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  // Show day and month for better readability: "10 Sep"
+  return `${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })}`;
+};
+
+const monthTickFmt = (value: string) => value; // already short month labels
+const yearTickFmt = (value: string | number) => String(value);
+
+const PriceChart: React.FC<PriceChartProps> = ({ data, xKey, yKey = 'price', title }) => {
+  const xTickFormatter = xKey === 'date' ? dateTickFmt : xKey === 'month' ? monthTickFmt : yearTickFmt;
+  const yDomain: [any, any] = ['dataMin - 100', 'dataMax + 100'];
+  
+  // Check if September 10 data exists
+  // Find September 10th data point for highlighting
+  const sep10Data = xKey === 'date' ? data.find(d => d.date?.includes && d.date?.includes('2025-09-10')) : null;
+  const sep10Value = sep10Data ? sep10Data.price : null;
+  const today = new Date();
+  const isToday = today.getDate() === 11 && today.getMonth() === 8; // September 11th
+  
+  // Find index of Sep 10 data for dot styling
+  const sep10Index = xKey === 'date' ? data.findIndex(d => d.date?.includes && d.date?.includes('2025-09-10')) : -1;
+
+  // Keep track of chart rendered state
+  const [rendered, setRendered] = React.useState(false);
+  
+  // Tooltip management for Sep 10 highlight
+  const chartRef = React.useRef(null);
+  React.useEffect(() => {
+    // When chart has rendered, try to show Sep 10 tooltip
+    if (rendered && sep10Index >= 0 && chartRef.current) {
+      // Small delay to ensure chart has fully rendered
+      const timer = setTimeout(() => {
+        try {
+          // Try to programmatically highlight Sep 10
+          const chart = chartRef.current;
+          if (chart && chart.handleMouseEnter) {
+            // Simulate mouse interaction with the Sep 10 dot
+            chart.handleMouseEnter({ activeTooltipIndex: sep10Index });
+          }
+        } catch (err) {
+          console.error("Failed to highlight Sep 10:", err);
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [rendered, sep10Index]);
+  
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart
+        ref={chartRef}
+        data={data}
+        margin={{ top: 10, right: 20, left: 0, bottom: xKey === 'date' ? 50 : 10 }}
+        onMouseLeave={() => {
+          setRendered(true);
+        }}>
+        <defs>
+          <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#22c55e" stopOpacity={0.9} />
+            <stop offset="100%" stopColor="#22c55e" stopOpacity={0.2} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+        <XAxis 
+          dataKey={xKey} 
+          tickFormatter={xTickFormatter} 
+          tickMargin={8}
+          interval={xKey === 'date' ? 2 : 0} // Show fewer ticks for better readability
+          angle={xKey === 'date' ? -45 : 0}
+          textAnchor={xKey === 'date' ? 'end' : 'middle'}
+          height={xKey === 'date' ? 60 : 30}
+        />
+        <YAxis domain={yDomain} tickFormatter={(v) => `₹${Number(v).toLocaleString('en-IN')}`} width={70} />
+        <Tooltip 
+          formatter={(value: number) => `${currencyFmt(Number(value))}/Qtl`} 
+          labelFormatter={(label: string) => {
+            if (xKey === 'date') {
+              const d = new Date(label);
+              return Number.isNaN(d.getTime()) ? label : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            }
+            return label;
+          }}
+          isAnimationActive={true}
+          animationDuration={300}
+        />
+        <Legend />
+        {/* Reference line for Sep 10 */}
+        {xKey === 'date' && sep10Data && (
+          <ReferenceLine 
+            x="2025-09-10"
+            stroke="#ff6b6b" 
+            strokeWidth={2}
+            strokeDasharray="3 3"
+            label={{ 
+              value: `Sep 10: ₹${sep10Value}`, 
+              position: 'insideTopRight',
+              fill: '#ff6b6b',
+              fontSize: 12
+            }}
+          />
+        )}
+        {/* Add a prominent dot for Sep 10 */}
+        {xKey === 'date' && sep10Data && sep10Index >= 0 && (
+          <Line 
+            data={[sep10Data]}
+            dataKey={yKey}
+            stroke="none"
+            dot={{
+              r: 8,
+              fill: "#ff6b6b",
+              stroke: "#fff",
+              strokeWidth: 2
+            }}
+          />
+        )}
+        <Line 
+          type="monotone" 
+          dataKey={yKey} 
+          stroke="#16a34a" 
+          strokeWidth={2} 
+          // Show dots at regular intervals plus Sep 10 specifically
+          dot={(props) => {
+            // Check if this is Sep 10 data point
+            const isSep10 = props.payload && props.payload.date === "2025-09-10";
+            
+            if (!props.payload) return null;
+            
+            // Show dots at regular intervals and Sep 10
+            if (props.index % 3 === 0) {
+              return (
+                <circle 
+                  cx={props.cx} 
+                  cy={props.cy} 
+                  r={4} 
+                  stroke="#16a34a"
+                  strokeWidth={1}
+                  fill="#fff"
+                />
+              );
+            }
+            return null;
+          }}
+          activeDot={{ r: 6 }} 
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+};
+
+export default PriceChart;

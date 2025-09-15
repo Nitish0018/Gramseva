@@ -1,0 +1,41 @@
+{
+  "name": "gramseva",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+ "scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "preview": "vite preview",
+  "start": "vite",
+  "chat-server": "node ./server/chat-server.js",
+  "dev:chat": "powershell -Command \"Start-Process powershell -ArgumentList '-NoExit','-Command','npm run chat-server'; npm run dev\""
+},
+  "dependencies": {
+    "@google/genai": "^1.17.0",
+    "@react-icons/all-files": "^4.1.0",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/postcss": "^4.1.13",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.2",
+    "autoprefixer": "^10.4.21",
+    "axios": "^1.11.0",
+    "lucide-react": "^0.542.0",
+    "postcss": "^8.5.6",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+  "recharts": "^3.1.2",
+  "ws": "^8.18.0",
+    "tailwindcss": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.3.6"
+  },
+  "description": "<div align=\"center\"> <img width=\"1200\" height=\"475\" alt=\"GHBanner\" src=\"https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6\" /> </div>",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC"
+}

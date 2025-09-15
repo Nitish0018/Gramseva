@@ -1,0 +1,7 @@
+{
+  "name": "Gramseva – Digital Haat & Market Insight",
+  "description": "A Progressive Web App designed to empower rural communities with transparent access to crop market prices, a secure digital marketplace for local services, and AI-powered insights via the Gemini API.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

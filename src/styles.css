@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #F8FAFC;
+    color: #1F2937;
+  }
+  
+  span {
+    color: #000;
+  }
+}
+
+@layer components {
+  .btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    outline: none;
+  }
+  
+  .btn:focus {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  }
+  
+  .btn-primary {
+    background-color: #10B981;
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background-color: #059669;
+  }
+  
+  .btn-secondary {
+    background-color: #E5E7EB;
+    color: #1F2937;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #D1D5DB;
+  }
+  
+  .card {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #E5E7EB;
+    padding: 1.5rem;
+  }
+  
+  .input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.5rem;
+  }
+  
+  .input:focus {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    border-color: transparent;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(to right, #10B981, #8B5CF6);
+    background-clip: text;
+    color: transparent;
+  }
+}
