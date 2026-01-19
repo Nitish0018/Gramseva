@@ -1,53 +1,50 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { AiMatchResult, CropHealthAnalysis } from '../types';
 
-const API_KEY = process.env.API_KEY;
+const API_KEY = process.env.API_KEY || process.env.GEMINI_API_KEY;
 
 if (!API_KEY) {
-  throw new Error("API_KEY environment variable not set");
+    throw new Error("API_KEY environment variable not set");
 }
 
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+const genAI = new GoogleGenerativeAI(API_KEY);
 
 export const getMarketInsight = async (cropName: string): Promise<string> => {
-  try {
-    const prompt = `Explain the current market trend for ${cropName} in simple terms for a farmer in rural India. Mention potential reasons for price changes and a simple outlook for the next few weeks. Keep it concise and easy to understand.`;
-    
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt
-    });
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const prompt = `Explain the current market trend for ${cropName} in simple terms for a farmer in rural India. Mention potential reasons for price changes and a simple outlook for the next few weeks. Keep it concise and easy to understand.`;
 
-    return response.text;
-  } catch (error) {
-    console.error("Error fetching market insight:", error);
-    return "Could not get AI insight at this time. Please try again later.";
-  }
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return response.text();
+    } catch (error) {
+        console.error("Error fetching market insight:", error);
+        return "Could not get AI insight at this time. Please try again later.";
+    }
 };
 
 export const getServiceProviderMatch = async (serviceQuery: string): Promise<AiMatchResult | string> => {
     try {
-        const response = await ai.models.generateContent({
+        const model = genAI.getGenerativeModel({
             model: "gemini-2.5-flash",
-            contents: `A farmer is looking for "${serviceQuery}". Based on typical rural service providers, suggest the best type of provider. Provide a fictional name, a strong reason for the recommendation (e.g., reliability, fair price), a rating out of 5, and a fictional contact number.`,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        providerName: { type: Type.STRING },
-                        reason: { type: Type.STRING },
-                        rating: { type: Type.NUMBER },
-                        contact: { type: Type.STRING }
-                    },
-                    required: ["providerName", "reason", "rating", "contact"]
-                }
-            }
+            generationConfig: { responseMimeType: "application/json" }
         });
 
-        const jsonText = response.text.trim();
-        const result: AiMatchResult = JSON.parse(jsonText);
-        return result;
+        const prompt = `A farmer is looking for "${serviceQuery}". Based on typical rural service providers, suggest the best type of provider. Provide a fictional name, a strong reason for the recommendation (e.g., reliability, fair price), a rating out of 5, and a fictional contact number.
+        
+        Respond with this JSON structure:
+        {
+            "providerName": "string",
+            "reason": "string",
+            "rating": number,
+            "contact": "string"
+        }`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+
+        return JSON.parse(text) as AiMatchResult;
 
     } catch (error) {
         console.error("Error getting AI match:", error);
@@ -57,6 +54,11 @@ export const getServiceProviderMatch = async (serviceQuery: string): Promise<AiM
 
 export const getCropHealthAnalysis = async (imageBase64: string, mimeType: string): Promise<CropHealthAnalysis | string> => {
     try {
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.5-flash",
+            generationConfig: { responseMimeType: "application/json" }
+        });
+
         const prompt = `You are an expert agricultural scientist specializing in plant pathology. Analyze the provided image of a plant leaf. Identify if there are any diseases.
         
         If the plant is healthy, respond with isHealthy: true and provide an encouraging message in the description.
@@ -68,40 +70,28 @@ export const getCropHealthAnalysis = async (imageBase64: string, mimeType: strin
         4. A list of suggested organic remedies.
         5. A list of suggested chemical remedies (mentioning common chemical names if possible).
 
-        Provide your response in the specified JSON format.`;
-        
+        Respond with this JSON structure:
+        {
+            "isHealthy": boolean,
+            "disease": "string (or N/A)",
+            "description": "string",
+            "causes": ["string"],
+            "organicRemedies": ["string"],
+            "chemicalRemedies": ["string"]
+        }`;
+
         const imagePart = {
             inlineData: {
-                mimeType: mimeType,
                 data: imageBase64,
-            },
+                mimeType: mimeType
+            }
         };
 
-        const textPart = { text: prompt };
+        const result = await model.generateContent([prompt, imagePart]);
+        const response = await result.response;
+        const text = response.text();
 
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: { parts: [imagePart, textPart] },
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        isHealthy: { type: Type.BOOLEAN },
-                        disease: { type: Type.STRING, description: "Set to 'N/A' if healthy." },
-                        description: { type: Type.STRING },
-                        causes: { type: Type.ARRAY, items: { type: Type.STRING } },
-                        organicRemedies: { type: Type.ARRAY, items: { type: Type.STRING } },
-                        chemicalRemedies: { type: Type.ARRAY, items: { type: Type.STRING } }
-                    },
-                    required: ["isHealthy", "disease", "description", "causes", "organicRemedies", "chemicalRemedies"]
-                }
-            }
-        });
-
-        const jsonText = response.text;
-        const result: CropHealthAnalysis = JSON.parse(jsonText);
-        return result;
+        return JSON.parse(text) as CropHealthAnalysis;
 
     } catch (error) {
         console.error("Error getting crop health analysis:", error);

@@ -3,16 +3,16 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
- "scripts": {
-  "dev": "vite",
-  "build": "vite build",
-  "preview": "vite preview",
-  "start": "vite",
-  "chat-server": "node ./server/chat-server.js",
-  "dev:chat": "powershell -Command \"Start-Process powershell -ArgumentList '-NoExit','-Command','npm run chat-server'; npm run dev\""
-},
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "vite",
+    "chat-server": "node ./server/chat-server.js",
+    "dev:chat": "powershell -Command \"Start-Process powershell -ArgumentList '-NoExit','-Command','npm run chat-server'; npm run dev\""
+  },
   "dependencies": {
-    "@google/genai": "^1.17.0",
+    "@google/generative-ai": "^0.24.1",
     "@react-icons/all-files": "^4.1.0",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/postcss": "^4.1.13",
@@ -21,13 +21,14 @@
     "@vitejs/plugin-react": "^5.0.2",
     "autoprefixer": "^10.4.21",
     "axios": "^1.11.0",
+    "dotenv": "^17.2.3",
     "lucide-react": "^0.542.0",
     "postcss": "^8.5.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-  "recharts": "^3.1.2",
-  "ws": "^8.18.0",
-    "tailwindcss": "^4.1.13"
+    "recharts": "^3.1.2",
+    "tailwindcss": "^4.1.13",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

@@ -6,12 +6,12 @@ import { getMarketInsight } from '../services/geminiService';
 import LoadingSpinner from './LoadingSpinner';
 import Modal from './Modal';
 import { useLanguage } from '../contexts/LanguageContext';
-import { 
-  SearchIcon, 
-  InsightIcon, 
-  ArrowUpIcon, 
-  ArrowDownIcon, 
-  RefreshIcon, 
+import {
+  SearchIcon,
+  InsightIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  RefreshIcon,
   FilterIcon,
   BarChartIcon,
   MapPinIcon,
@@ -23,10 +23,10 @@ import {
   ActivityIcon,
   DollarSignIcon
 } from './icons';
-import { 
-  realtimeMarketService, 
-  type RealTimeMarketPrice, 
-  type MarketAlert, 
+import {
+  realtimeMarketService,
+  type RealTimeMarketPrice,
+  type MarketAlert,
   type PriceComparison,
   type MarketAnalytics
 } from '../services/realtimeMarketService';
@@ -89,7 +89,7 @@ const RealTimeMarketDashboard: React.FC = () => {
   // Subscribe to real-time updates
   useEffect(() => {
     const subscriberId = 'market-dashboard';
-    
+
     realtimeMarketService.subscribe(subscriberId, (prices) => {
       setRealtimePrices(prices);
       setLastUpdate(new Date());
@@ -150,104 +150,108 @@ const RealTimeMarketDashboard: React.FC = () => {
   // Filter prices
   const filteredPrices = realtimePrices.filter(price => {
     const matchesSearch = price.commodity.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         price.market.toLowerCase().includes(searchTerm.toLowerCase());
+      price.market.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesMarket = selectedMarket === 'all' || price.market.toLowerCase().includes(selectedMarket.toLowerCase());
     return matchesSearch && matchesMarket;
   });
 
   // Price change indicator component
   const PriceChangeIndicator: React.FC<{ change: number; showIcon?: boolean }> = ({ change, showIcon = true }) => (
-    <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${
-      change >= 0 
-        ? 'bg-green-100 text-green-800' 
-        : 'bg-red-100 text-red-800'
-    }`}>
-      {showIcon && (change >= 0 ? <ArrowUpIcon className="h-3 w-3" /> : <ArrowDownIcon className="h-3 w-3" />)}
+    <div className={`flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold tracking-wide ${change >= 0
+        ? 'bg-success/10 text-success'
+        : 'bg-error/10 text-error'
+      }`}>
+      {showIcon && (change >= 0 ? <ArrowUpIcon className="h-3.5 w-3.5 stroke-[3]" /> : <ArrowDownIcon className="h-3.5 w-3.5 stroke-[3]" />)}
       <span>{change >= 0 ? '+' : ''}{change}%</span>
     </div>
   );
 
   // Real-time price card
   const PriceCard: React.FC<{ price: RealTimeMarketPrice }> = ({ price }) => (
-    <div className="bg-gray-100 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-4">
-      <div className="flex items-center justify-between mb-2">
+    <div className="card card-hover group relative overflow-hidden">
+      <div className={`absolute top-0 left-0 w-1 h-full ${price.trend === 'rising' ? 'bg-success' :
+          price.trend === 'falling' ? 'bg-error' : 'bg-gray-300'
+        }`} />
+
+      <div className="flex items-center justify-between mb-3 pl-3">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-900">{price.commodity}</h3>
-          {price.variety && <span className="text-xs text-gray-500">({price.variety})</span>}
+          <h3 className="font-bold text-lg text-gray-900 group-hover:text-primary transition-colors">{price.commodity}</h3>
+          {price.variety && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">{price.variety}</span>}
         </div>
-        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-          price.trend === 'rising' ? 'bg-green-100 text-green-800' :
-          price.trend === 'falling' ? 'bg-red-100 text-red-800' :
-          'bg-gray-100 text-gray-800'
-        }`}>
+        <div className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${price.trend === 'rising' ? 'bg-success/10 text-success' :
+            price.trend === 'falling' ? 'bg-error/10 text-error' :
+              'bg-gray-100 text-gray-600'
+          }`}>
           {price.trend}
         </div>
       </div>
-      
-      <div className="mb-3">
+
+      <div className="mb-4 pl-3">
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold text-blue-600">₹{price.price.toLocaleString()}</span>
-          <span className="text-sm text-gray-500">/{price.unit}</span>
+          <span className="text-3xl font-bold text-gray-900 tracking-tight">₹{price.price.toLocaleString()}</span>
+          <span className="text-sm font-medium text-gray-500">/{price.unit}</span>
         </div>
-        <PriceChangeIndicator change={price.priceChangePercent} />
-      </div>
-
-      <div className="space-y-1 text-sm text-gray-600">
-        <div className="flex justify-between">
-          <span>{t('marketLabel')}</span>
-          <span className="font-medium">{price.market}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>{t('volumeLabel')}</span>
-          <span className="font-medium">{price.volume} {price.unit}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>{t('qualityLabel')}</span>
-          <span className="font-medium">{price.quality}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>{t('sourceLabel')}</span>
-          <span className="font-medium">{price.source}</span>
+        <div className="mt-1 flex items-center gap-2">
+          <PriceChangeIndicator change={price.priceChangePercent} />
+          <span className="text-xs text-gray-400">vs yesterday</span>
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-gray-200">
+      <div className="space-y-2 text-sm pl-3">
+        <div className="flex justify-between items-center py-1 border-b border-gray-50">
+          <span className="text-gray-500">{t('marketLabel')}</span>
+          <span className="font-medium text-gray-900">{price.market}</span>
+        </div>
+        <div className="flex justify-between items-center py-1 border-b border-gray-50">
+          <span className="text-gray-500">{t('volumeLabel')}</span>
+          <span className="font-medium text-gray-900">{price.volume} {price.unit}</span>
+        </div>
+        <div className="flex justify-between items-center py-1">
+          <span className="text-gray-500">{t('qualityLabel')}</span>
+          <span className="font-medium text-gray-900">{price.quality}</span>
+        </div>
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-gray-100 pl-3">
         <div className="flex items-center justify-between text-xs text-gray-500">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded">
             <ClockIcon className="h-3 w-3" />
             <span>Updated {new Date(price.timestamp).toLocaleTimeString()}</span>
           </div>
-          <span>{price.state}</span>
+          <span className="font-medium text-primary">{price.state}</span>
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-4 space-y-6">
+    <div className="min-h-screen bg-transparent pb-10">
+      <div className="container-page space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-enter">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-4xl font-bold text-gray-900 font-display tracking-tight">
               {t('realtimeMarketDashboard')}
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-textSecondary mt-2 text-lg">
               {t('livePrices')}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-black">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <div className="flex items-center gap-2 text-sm font-medium px-3 py-1.5 bg-primary/5 text-primary rounded-full border border-primary/20">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
+              </span>
               <span>{t('live')} • {t('updated')} {lastUpdate.toLocaleTimeString()}</span>
             </div>
             <button
               onClick={() => setShowAlerts(!showAlerts)}
-              className="relative p-2 text-gray-600 hover:text-gray-900"
+              className="relative p-2.5 bg-white text-gray-600 hover:text-primary hover:bg-gray-50 rounded-xl border border-gray-200 transition-all active:scale-95"
             >
               <BellIcon className="h-5 w-5" />
               {marketAlerts.filter(a => !a.isRead).length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-black text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-white">
                   {marketAlerts.filter(a => !a.isRead).length}
                 </span>
               )}
@@ -255,7 +259,7 @@ const RealTimeMarketDashboard: React.FC = () => {
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="btn btn-primary flex items-center gap-2"
             >
               <RefreshIcon className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               {t('refresh')}
@@ -265,50 +269,48 @@ const RealTimeMarketDashboard: React.FC = () => {
 
         {/* Market Summary Stats */}
         {marketSummary && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-gray-100 rounded-lg shadow p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 animate-enter" style={{ animationDelay: '0.1s' }}>
+            <div className="card p-5 border-l-4 border-l-blue-500">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-500/10 rounded-xl">
                   <BarChartIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{t('activeCommodities')}</p>
+                  <p className="text-sm font-medium text-gray-500">{t('activeCommodities')}</p>
                   <p className="text-2xl font-bold text-gray-900">{marketSummary.totalCommodities}</p>
                 </div>
               </div>
             </div>
-            
-            <div className="bg-gray-100 rounded-lg shadow p-6">
-              <div className="flex items-center gap-3">
-                <div className={`p-3 rounded-lg ${
-                  marketSummary.avgPriceChange >= 0 
-                    ? 'bg-green-100' 
-                    : 'bg-red-100'
-                }`}>
+
+            <div className={`card p-5 border-l-4 ${marketSummary.avgPriceChange >= 0 ? 'border-l-success' : 'border-l-error'}`}>
+              <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-xl ${marketSummary.avgPriceChange >= 0
+                    ? 'bg-success/10'
+                    : 'bg-error/10'
+                  }`}>
                   {marketSummary.avgPriceChange >= 0 ? (
-                    <TrendingUpIcon className="h-6 w-6 text-green-600" />
+                    <TrendingUpIcon className="h-6 w-6 text-success" />
                   ) : (
-                    <TrendingDownIcon className="h-6 w-6 text-red-600" />
+                    <TrendingDownIcon className="h-6 w-6 text-error" />
                   )}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{t('avgPriceChange')}</p>
-                  <p className={`text-2xl font-bold ${
-                    marketSummary.avgPriceChange >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <p className="text-sm font-medium text-gray-500">{t('avgPriceChange')}</p>
+                  <p className={`text-2xl font-bold ${marketSummary.avgPriceChange >= 0 ? 'text-success' : 'text-error'
+                    }`}>
                     {marketSummary.avgPriceChange >= 0 ? '+' : ''}{marketSummary.avgPriceChange}%
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-100 rounded-lg shadow p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-purple-100 rounded-lg">
+            <div className="card p-5 border-l-4 border-l-purple-500">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-purple-500/10 rounded-xl">
                   <ActivityIcon className="h-6 w-6 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{t('highVolume')}</p>
+                  <p className="text-sm font-medium text-gray-500">{t('highVolume')}</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {marketSummary.highVolume.length}
                   </p>
@@ -316,13 +318,13 @@ const RealTimeMarketDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-gray-100 rounded-lg shadow p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-orange-100 rounded-lg">
+            <div className="card p-5 border-l-4 border-l-orange-500">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-orange-500/10 rounded-xl">
                   <AlertIcon className="h-6 w-6 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{t('activeAlerts')}</p>
+                  <p className="text-sm font-medium text-gray-500">{t('activeAlerts')}</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {marketAlerts.filter(a => !a.isRead).length}
                   </p>
@@ -330,18 +332,15 @@ const RealTimeMarketDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-gray-100 rounded-lg shadow p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-indigo-100 rounded-lg">
+            <div className="card p-5 border-l-4 border-l-indigo-500">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-indigo-500/10 rounded-xl">
                   <ClockIcon className="h-6 w-6 text-indigo-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{t('viewPeriod')}</p>
-                  <p className="text-sm font-bold text-gray-900">
-                    {getPeriodDisplayText(timePeriod)}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {getDataPointsText(timePeriod)}
+                  <p className="text-sm font-medium text-gray-500">{getPeriodDisplayText(timePeriod)}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {t('viewPeriod')}
                   </p>
                 </div>
               </div>
@@ -351,18 +350,20 @@ const RealTimeMarketDashboard: React.FC = () => {
 
         {/* Top Movers */}
         {marketSummary && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-gray-100 rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <TrendingUpIcon className="h-5 w-5 text-green-600" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-enter" style={{ animationDelay: '0.2s' }}>
+            <div className="card p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+                <div className="p-1.5 bg-success/10 rounded-lg">
+                  <TrendingUpIcon className="h-5 w-5 text-success" />
+                </div>
                 {t('topGainers')}
               </h3>
               <div className="space-y-3">
                 {marketSummary.topGainers.map((price) => (
-                  <div key={price.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div key={price.id} className="flex items-center justify-between p-3.5 bg-success/5 rounded-xl border border-success/10 hover:bg-success/10 transition-colors">
                     <div>
-                      <p className="font-medium text-gray-900">{price.commodity}</p>
-                      <p className="text-sm text-gray-600">{price.market}</p>
+                      <p className="font-semibold text-gray-900">{price.commodity}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{price.market}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-gray-900">₹{price.price}</p>
@@ -373,17 +374,19 @@ const RealTimeMarketDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-gray-100 rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <TrendingDownIcon className="h-5 w-5 text-red-600" />
+            <div className="card p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+                <div className="p-1.5 bg-error/10 rounded-lg">
+                  <TrendingDownIcon className="h-5 w-5 text-error" />
+                </div>
                 {t('topLosers')}
               </h3>
               <div className="space-y-3">
                 {marketSummary.topLosers.map((price) => (
-                  <div key={price.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                  <div key={price.id} className="flex items-center justify-between p-3.5 bg-error/5 rounded-xl border border-error/10 hover:bg-error/10 transition-colors">
                     <div>
-                      <p className="font-medium text-gray-900">{price.commodity}</p>
-                      <p className="text-sm text-gray-600">{price.market}</p>
+                      <p className="font-semibold text-gray-900">{price.commodity}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{price.market}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-gray-900">₹{price.price}</p>
@@ -397,41 +400,41 @@ const RealTimeMarketDashboard: React.FC = () => {
         )}
 
         {/* Search and Filters */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 animate-enter" style={{ animationDelay: '0.3s' }}>
           <div className="flex-1 relative">
-            <input 
+            <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={t('searchCommodities')} 
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-100 text-gray-900"
+              placeholder={t('searchCommodities')}
+              className="input pl-11 py-3 text-lg shadow-sm"
             />
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-4">
               <SearchIcon className="h-5 w-5 text-gray-400" />
             </div>
           </div>
-          
+
           {/* Filters Row */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 whitespace-nowrap">{t('period')}:</span>
+          <div className="flex flex-col sm:flex-row gap-4 p-1">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-600 whitespace-nowrap">{t('period')}:</span>
               <select
                 value={timePeriod}
                 onChange={(e) => setTimePeriod(e.target.value as 'last30' | 'month' | 'year')}
-                className="flex-1 sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-100 text-gray-900"
+                className="flex-1 sm:w-auto px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer text-gray-700 shadow-sm"
               >
                 <option value="last30">{t('last30Days')}</option>
                 <option value="month">{t('thisMonth')}</option>
                 <option value="year">{t('thisYear')}</option>
               </select>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 whitespace-nowrap">{t('marketFilter')}:</span>
+
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-600 whitespace-nowrap">{t('marketFilter')}:</span>
               <select
                 value={selectedMarket}
                 onChange={(e) => setSelectedMarket(e.target.value)}
-                className="flex-1 sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-100 text-gray-900"
+                className="flex-1 sm:w-auto px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer text-gray-700 shadow-sm"
               >
                 <option value="all">{t('allMarkets')}</option>
                 <option value="delhi">Delhi</option>
@@ -441,10 +444,10 @@ const RealTimeMarketDashboard: React.FC = () => {
                 <option value="nashik">Nashik</option>
               </select>
             </div>
-            
-            <button 
+
+            <button
               onClick={handleGetInsight}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-200 text-black rounded-lg hover:bg-gray-300 whitespace-nowrap"
+              className="ml-auto flex items-center justify-center gap-2 px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-lg shadow-purple-500/30 hover:shadow-purple-500/40 transition-all active:scale-95 whitespace-nowrap font-medium"
             >
               <InsightIcon className="h-4 w-4" />
               {t('aiInsight')}
@@ -453,36 +456,43 @@ const RealTimeMarketDashboard: React.FC = () => {
         </div>
 
         {/* Real-time Price Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-enter" style={{ animationDelay: '0.4s' }}>
           {filteredPrices.map(price => (
             <PriceCard key={price.id} price={price} />
           ))}
         </div>
 
         {filteredPrices.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">{t('noCommoditiesFound')}</p>
+          <div className="text-center py-20 bg-white/50 rounded-2xl border-2 border-dashed border-gray-200">
+            <p className="text-gray-400 text-lg font-medium">{t('noCommoditiesFound')}</p>
           </div>
         )}
 
         {/* Price Comparison */}
         {priceComparison && (
-          <div className="bg-gray-100 rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="card p-8 animate-enter" style={{ animationDelay: '0.5s' }}>
+            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+              <span className="w-1 h-8 bg-blue-500 rounded-full"></span>
               {t('priceComparison')} - {priceComparison.commodity}
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {priceComparison.markets.map((market, index) => (
-                <div key={index} className={`p-4 rounded-lg border-2 ${
-                  market.market === priceComparison.bestMarket
-                    ? 'border-green-500 bg-green-50'
-                    : 'border-gray-200'
-                }`}>
-                  <div className="font-medium text-gray-900">{market.market}</div>
-                  <div className="text-xl font-bold text-blue-600">₹{market.price}</div>
-                  {market.distance && <div className="text-sm text-gray-600">{t('distance')}: {market.distance}km</div>}
-                  {market.transportCost && <div className="text-sm text-gray-600">{t('transport')}: ₹{market.transportCost}</div>}
-                  {market.netPrice && <div className="text-sm font-medium text-green-600">{t('net')}: ₹{market.netPrice}</div>}
+                <div key={index} className={`relative p-5 rounded-2xl border-2 transition-all ${market.market === priceComparison.bestMarket
+                    ? 'border-success bg-success/5 shadow-md'
+                    : 'border-gray-100 hover:border-gray-200'
+                  }`}>
+                  {market.market === priceComparison.bestMarket && (
+                    <div className="absolute -top-3 left-4 px-3 py-1 bg-success text-white text-xs font-bold rounded-full shadow-sm">
+                      BEST PRICE
+                    </div>
+                  )}
+                  <div className="font-bold text-gray-900 text-lg">{market.market}</div>
+                  <div className="text-2xl font-bold text-primary my-2">₹{market.price}</div>
+                  <div className="space-y-1">
+                    {market.distance && <div className="text-sm text-gray-500">{t('distance')}: <span className="text-gray-700">{market.distance}km</span></div>}
+                    {market.transportCost && <div className="text-sm text-gray-500">{t('transport')}: <span className="text-gray-700">₹{market.transportCost}</span></div>}
+                    {market.netPrice && <div className="text-sm font-bold text-success border-t border-gray-100 mt-2 pt-2">{t('net')}: ₹{market.netPrice}</div>}
+                  </div>
                 </div>
               ))}
             </div>
@@ -491,81 +501,88 @@ const RealTimeMarketDashboard: React.FC = () => {
 
         {/* Market Analytics */}
         {marketAnalytics && (
-          <div className="bg-gray-100 rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+          <div className="card p-8 animate-enter" style={{ animationDelay: '0.6s' }}>
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-3">
+                <span className="w-1 h-8 bg-purple-500 rounded-full"></span>
                 {t('marketAnalytics')} - {marketAnalytics.commodity}
               </h3>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm font-medium px-4 py-1.5 bg-gray-100 rounded-full text-gray-600">
                 {t('period')}: {getPeriodDisplayText(timePeriod)}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="text-center">
-                <p className="text-sm text-gray-600">{t('averagePrice')}</p>
-                <p className="text-xl font-bold text-blue-600">₹{marketAnalytics.avgPrice}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="text-center p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <p className="text-sm text-gray-500 font-medium mb-1">{t('averagePrice')}</p>
+                <p className="text-2xl font-bold text-primary">₹{marketAnalytics.avgPrice}</p>
               </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">{t('highest')}</p>
-                <p className="text-xl font-bold text-green-600">₹{marketAnalytics.highestPrice}</p>
+              <div className="text-center p-4 bg-green-50/50 rounded-2xl border border-green-100">
+                <p className="text-sm text-green-700 font-medium mb-1">{t('highest')}</p>
+                <p className="text-2xl font-bold text-green-700">₹{marketAnalytics.highestPrice}</p>
               </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">{t('lowest')}</p>
-                <p className="text-xl font-bold text-red-600">₹{marketAnalytics.lowestPrice}</p>
+              <div className="text-center p-4 bg-red-50/50 rounded-2xl border border-red-100">
+                <p className="text-sm text-red-700 font-medium mb-1">{t('lowest')}</p>
+                <p className="text-2xl font-bold text-red-700">₹{marketAnalytics.lowestPrice}</p>
               </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">{t('volatility')}</p>
-                <p className="text-xl font-bold text-purple-600">₹{marketAnalytics.volatility}</p>
+              <div className="text-center p-4 bg-purple-50/50 rounded-2xl border border-purple-100">
+                <p className="text-sm text-purple-700 font-medium mb-1">{t('volatility')}</p>
+                <p className="text-2xl font-bold text-purple-700">₹{marketAnalytics.volatility}</p>
               </div>
             </div>
 
-            <div className="mb-4">
-              <h4 className="font-medium text-gray-900 mb-2">
+            <div className="mb-8">
+              <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <div className="p-1 bg-blue-100 rounded text-blue-600"><InsightIcon className="h-4 w-4" /></div>
                 {t('pricePrediction')} ({timePeriod === 'year' ? t('nextMonth') : t('nextWeek')})
               </h4>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span>{t('predictedPrice')}</span>
-                  <span className="font-bold text-blue-600">₹{marketAnalytics.prediction.nextWeekPrice}</span>
-                </div>
-                <div className="flex justify-between items-center mb-3">
-                  <span>{t('confidenceLevel')}</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-20 h-2 bg-gray-200 rounded-full">
-                      <div 
-                        className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                        style={{ width: `${marketAnalytics.prediction.confidence}%` }}
-                      ></div>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-gray-600 font-medium">{t('predictedPrice')}</span>
+                      <span className="text-2xl font-bold text-blue-600">₹{marketAnalytics.prediction.nextWeekPrice}</span>
                     </div>
-                    <span className="font-medium">{marketAnalytics.prediction.confidence}%</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">{t('confidenceLevel')}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-32 h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-600 rounded-full transition-all duration-1000 ease-out"
+                            style={{ width: `${marketAnalytics.prediction.confidence}%` }}
+                          ></div>
+                        </div>
+                        <span className="font-bold text-blue-600">{marketAnalytics.prediction.confidence}%</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-3">
-                  <p className="text-sm text-gray-600 mb-2">{t('keyFactors')}:</p>
-                  <ul className="text-sm text-gray-600 space-y-1">
-                    {marketAnalytics.prediction.factors.map((factor, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
-                        {factor}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="w-px h-24 bg-blue-200 hidden md:block"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-gray-700 mb-3">{t('keyFactors')}:</p>
+                    <ul className="space-y-2">
+                      {marketAnalytics.prediction.factors.map((factor, index) => (
+                        <li key={index} className="flex items-start gap-2 text-sm text-gray-600 bg-white/60 p-2 rounded-lg">
+                          <div className="mt-1.5 w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0"></div>
+                          {factor}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Pattern Analysis */}
-            <div className="mb-4">
-              <h4 className="font-medium text-gray-900 mb-3">
-                {timePeriod === 'year' ? t('monthlyPattern') : 
-                 timePeriod === 'month' ? t('weekly') : 
-                 t('recent')} {t('pricePattern')}
+            <div className="mb-2">
+              <h4 className="font-bold text-gray-900 mb-4">
+                {timePeriod === 'year' ? t('monthlyPattern') :
+                  timePeriod === 'month' ? t('weekly') :
+                    t('recent')} {t('pricePattern')}
               </h4>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 {marketAnalytics.seasonalPattern.map((pattern, index) => (
-                  <div key={index} className="bg-gray-50 p-3 rounded-lg text-center">
-                    <p className="text-xs text-gray-600">{pattern.month}</p>
-                    <p className="font-bold text-gray-900">₹{Math.round(pattern.avgPrice)}</p>
+                  <div key={index} className="bg-white p-4 rounded-xl text-center border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{pattern.month}</p>
+                    <p className="font-bold text-gray-900 text-lg">₹{Math.round(pattern.avgPrice)}</p>
                   </div>
                 ))}
               </div>
@@ -575,20 +592,20 @@ const RealTimeMarketDashboard: React.FC = () => {
 
         {/* Historical Chart */}
         {historicalData.length > 0 && (
-          <div className="bg-gray-100 rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {t('priceTrend')} - {getPeriodDisplayText(timePeriod)}
+          <div className="card p-8 animate-enter" style={{ animationDelay: '0.7s' }}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-3">
+                <span className="w-1 h-8 bg-gray-800 rounded-full"></span>
+                {t('priceTrend')}
               </h3>
-              <div className="text-sm text-gray-600">
-                {t('dataPoints')} {historicalData.length}
+              <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                {t('dataPoints')} <span className="font-bold text-gray-900">{historicalData.length}</span>
               </div>
             </div>
             <div className="h-80">
               {(() => {
                 // Prepare data based on selected period
                 if (timePeriod === 'year') {
-                  // Group by month and compute average price
                   const byMonth: Record<string, { sum: number; count: number }> = {};
                   for (const d of historicalData) {
                     const [y, m] = d.date.split('-');
@@ -596,7 +613,7 @@ const RealTimeMarketDashboard: React.FC = () => {
                     if (!byMonth[key]) byMonth[key] = { sum: 0, count: 0 };
                     byMonth[key].sum += d.price; byMonth[key].count += 1;
                   }
-                  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                   const monthSeries = Object.keys(byMonth).sort().map(k => {
                     const monthIdx = parseInt(k.split('-')[1], 10) - 1;
                     return { month: monthNames[monthIdx], price: Math.round(byMonth[k].sum / byMonth[k].count) };
@@ -604,11 +621,9 @@ const RealTimeMarketDashboard: React.FC = () => {
                   return <PriceChart data={monthSeries} xKey="month" />;
                 }
                 if (timePeriod === 'month') {
-                  // Use date granularity but only current month data
                   const monthData = historicalData.map(d => ({ date: d.date, price: d.price }));
                   return <PriceChart data={monthData} xKey="date" />;
                 }
-                // last30 default: date granularity
                 const last30 = historicalData.map(d => ({ date: d.date, price: d.price }));
                 return <PriceChart data={last30} xKey="date" />;
               })()}
@@ -618,39 +633,43 @@ const RealTimeMarketDashboard: React.FC = () => {
 
         {/* Alerts Panel */}
         {showAlerts && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-100 rounded-lg shadow-xl max-w-md w-full max-h-96 overflow-y-auto">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold text-gray-900">{t('marketAlerts')}</h3>
-                  <button
-                    onClick={() => setShowAlerts(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    ✕
-                  </button>
-                </div>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col animate-enter">
+              <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <BellIcon className="h-5 w-5 text-gray-600" />
+                  {t('marketAlerts')}
+                </h3>
+                <button
+                  onClick={() => setShowAlerts(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  ✕
+                </button>
               </div>
-              <div className="p-4 space-y-3">
+              <div className="p-5 space-y-3 overflow-y-auto">
                 {marketAlerts.length === 0 ? (
-                  <p className="text-gray-500">{t('noAlertsYet')}</p>
+                  <div className="text-center py-10">
+                    <BellIcon className="h-12 w-12 text-gray-200 mx-auto mb-3" />
+                    <p className="text-gray-500">{t('noAlertsYet')}</p>
+                  </div>
                 ) : (
                   marketAlerts.map((alert) => (
-                    <div key={alert.id} className={`p-3 rounded-lg ${
-                      alert.priority === 'high' ? 'bg-red-50 border border-red-200' :
-                      alert.priority === 'medium' ? 'bg-yellow-50 border border-yellow-200' :
-                      'bg-blue-50 border border-blue-200'
-                    }`}>
+                    <div key={alert.id} className={`p-4 rounded-xl border-l-4 shadow-sm ${alert.priority === 'high' ? 'bg-red-50 border-red-500' :
+                        alert.priority === 'medium' ? 'bg-orange-50 border-orange-500' :
+                          'bg-blue-50 border-blue-500'
+                      }`}>
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-medium text-gray-900">{alert.commodity}</p>
-                          <p className="text-sm text-gray-600">{alert.message}</p>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="font-bold text-gray-900">{alert.commodity}</p>
+                          <p className="text-sm text-gray-700 mt-1">{alert.message}</p>
+                          <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                            <ClockIcon className="h-3 w-3" />
                             {new Date(alert.timestamp).toLocaleString()}
                           </p>
                         </div>
                         {!alert.isRead && (
-                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <div className="w-2.5 h-2.5 bg-blue-500 rounded-full ring-4 ring-blue-100"></div>
                         )}
                       </div>
                     </div>
@@ -662,23 +681,34 @@ const RealTimeMarketDashboard: React.FC = () => {
         )}
 
         {/* AI Insight Modal */}
-        <Modal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
           title={t('aiMarketInsight')}
         >
           {isLoading ? (
-            <div className="flex justify-center items-center h-32">
+            <div className="flex flex-col justify-center items-center h-48">
               <LoadingSpinner />
+              <p className="text-sm text-gray-500 mt-4 animate-pulse">Analyzing market trends...</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{insight}</p>
+            <div className="space-y-6">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100">
+                <p className="text-gray-800 whitespace-pre-wrap leading-relaxed text-lg font-medium font-sans">
+                  {insight}
+                </p>
+              </div>
               {insight && (
-                <div className="mt-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
-                  <p className="text-sm text-blue-700">
-                    {t('aiInsightRealtime')}
-                  </p>
+                <div className="flex items-start gap-4 p-4 bg-white border border-blue-100 rounded-xl shadow-sm">
+                  <div className="p-2 bg-blue-100 rounded-lg shrink-0">
+                    <InsightIcon className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-gray-900 text-sm mb-1">AI Analysis</h5>
+                    <p className="text-sm text-gray-600">
+                      {t('aiInsightRealtime')}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
