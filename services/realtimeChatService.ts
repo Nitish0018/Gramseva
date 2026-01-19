@@ -21,32 +21,41 @@ class RealtimeChatService {
     if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
       return;
     }
-    this.ws = new WebSocket(this.url);
+    
+    try {
+      this.ws = new WebSocket(this.url);
 
-    this.ws.onopen = () => {
-      this.reconnectAttempts = 0;
-    };
+      this.ws.onopen = () => {
+        this.reconnectAttempts = 0;
+      };
 
-    this.ws.onmessage = (ev) => {
-      try {
-        const data: ChatEvent = JSON.parse(ev.data);
-        if (data.type === 'connected') {
-          this.clientId = data.payload.id;
+      this.ws.onmessage = (ev) => {
+        try {
+          const data: ChatEvent = JSON.parse(ev.data);
+          if (data.type === 'connected') {
+            this.clientId = data.payload.id;
+          }
+          this.listeners.forEach((cb) => cb(data));
+        } catch {
+          // ignore parsing errors
         }
-        this.listeners.forEach((cb) => cb(data));
-      } catch {
-        // ignore
-      }
-    };
+      };
 
-    this.ws.onclose = () => {
-      if (this.reconnectAttempts < this.maxReconnectAttempts) {
-        setTimeout(() => {
-          this.reconnectAttempts++;
-          this.connect();
-        }, this.reconnectInterval * this.reconnectAttempts);
-      }
-    };
+      this.ws.onerror = (error) => {
+        console.warn('WebSocket error:', error);
+      };
+
+      this.ws.onclose = () => {
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          setTimeout(() => {
+            this.reconnectAttempts++;
+            this.connect();
+          }, this.reconnectInterval * this.reconnectAttempts);
+        }
+      };
+    } catch (error) {
+      console.error('Failed to create WebSocket connection:', error);
+    }
   }
 
   on(cb: (event: ChatEvent) => void) {
@@ -55,21 +64,33 @@ class RealtimeChatService {
   }
 
   sendMessage(content: string, meta?: any) {
-    const payload = {
-      type: 'message',
-      id: `${Date.now()}`,
-      content,
-      sender: 'user' as const,
-      user: { id: this.clientId || 'local', name: 'You' },
-      timestamp: new Date().toISOString(),
-      meta,
-    };
-    this.ws?.send(JSON.stringify(payload));
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      const payload = {
+        type: 'message',
+        id: `${Date.now()}`,
+        content,
+        sender: 'user' as const,
+        user: { id: this.clientId || 'local', name: 'You' },
+        timestamp: new Date().toISOString(),
+        meta,
+      };
+      try {
+        this.ws.send(JSON.stringify(payload));
+      } catch (error) {
+        console.error('Failed to send message:', error);
+      }
+    }
   }
 
   sendTyping(isTyping: boolean) {
-    const payload = { type: 'typing', user: { id: this.clientId || 'local', name: 'You' }, isTyping };
-    this.ws?.send(JSON.stringify(payload));
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      const payload = { type: 'typing', user: { id: this.clientId || 'local', name: 'You' }, isTyping };
+      try {
+        this.ws.send(JSON.stringify(payload));
+      } catch (error) {
+        console.error('Failed to send typing indicator:', error);
+      }
+    }
   }
 
   getClientId() {

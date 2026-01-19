@@ -21,16 +21,24 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
   // Load language from localStorage on mount
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('selectedLanguage');
-    if (savedLanguage && LANGUAGES.find(lang => lang.code === savedLanguage)) {
-      setCurrentLanguage(savedLanguage);
+    try {
+      const savedLanguage = localStorage.getItem('selectedLanguage');
+      if (savedLanguage && LANGUAGES.find(lang => lang.code === savedLanguage)) {
+        setCurrentLanguage(savedLanguage);
+      }
+    } catch (error) {
+      console.warn('Failed to load language preference:', error);
     }
   }, []);
 
   const setLanguage = (languageCode: string) => {
     if (LANGUAGES.find(lang => lang.code === languageCode)) {
       setCurrentLanguage(languageCode);
-      localStorage.setItem('selectedLanguage', languageCode);
+      try {
+        localStorage.setItem('selectedLanguage', languageCode);
+      } catch (error) {
+        console.warn('Failed to save language preference:', error);
+      }
     }
   };
 
