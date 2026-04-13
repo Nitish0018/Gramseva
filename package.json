@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
+    "preview": "npm run build && wrangler dev",
     "start": "vite",
     "chat-server": "node ./server/chat-server.js",
-    "dev:chat": "powershell -Command \"Start-Process powershell -ArgumentList '-NoExit','-Command','npm run chat-server'; npm run dev\""
+    "dev:chat": "powershell -Command \"Start-Process powershell -ArgumentList '-NoExit','-Command','npm run chat-server'; npm run dev\"",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -31,9 +32,11 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.32.2",
     "@types/node": "^22.14.0",
     "typescript": "~5.8.2",
-    "vite": "^6.3.6"
+    "vite": "^6.3.6",
+    "wrangler": "^4.82.2"
   },
   "description": "<div align=\"center\"> <img width=\"1200\" height=\"475\" alt=\"GHBanner\" src=\"https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6\" /> </div>",
   "main": "index.js",

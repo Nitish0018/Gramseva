@@ -38,3 +38,9 @@ test-gemini.ts
 *.bak
 *.backup
 tailwind.config.js.bak
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
